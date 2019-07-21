@@ -18,6 +18,7 @@ Stage 2
 [?] music
 """
 import sys
+import pdb
 import pygame
 from pygame.locals import *
 pygame.init()
@@ -124,7 +125,7 @@ def draw_player():
     else: 
         if g['direction'] == 1: screen.blit(sprites['crouch'], (x, y))
         else: screen.blit(pygame.transform.flip(sprites['crouch'], True, False), (x, y))
-    if '-d' in sys.argv: pygame.draw.rect(screen, (255/10 * g['P'], 0, 0), pygame.rect.Rect((x, y - 12), (g['P'] * 3, 10)))
+    pygame.draw.rect(screen, (255/10 * g['P'], 0, 0), pygame.rect.Rect((x, y - 12), (g['P'] * 3, 10)))
 
 
 def draw_platform(pos, dim, color):
@@ -222,6 +223,7 @@ def evaluate_input(counter):
             if e.key == K_q: take_dmg()
 
             if e.key == K_n and '-d' in sys.argv: win_lvl()
+            if e.key == K_d and '-d' in sys.argv: pdb.set_trace()
 
     keys = pygame.key.get_pressed()
     if not keys[K_SPACE] and -10 < g['y_vel'] < 0:
@@ -335,7 +337,9 @@ def move_actors(level, c):
         hitbox = pygame.rect.Rect((ayy[0] * 32, ayy[1] * 32), (32, 64))
         if hitbox.move(2 * direction, 0).collidelist(checklist) != -1:
             level['ayys'][i][1] *= -1
-        if c % 60 == 0 and frame == 0: level['lasers'].append([(ayy[0] - 1, ayy[1]), direction])
+        if c % 60 == 0 and frame == 0:
+            laser = [(ayy[0] - 1 , ayy[1]), direction] if direction == -1 else [(ayy[0], ayy[1]), direction]
+            level['lasers'].append(laser)
         level['ayys'][i][0] = level['ayys'][i][0][0] + (2 * (1/32)) * level['ayys'][i][1], level['ayys'][i][0][1]
         if frame != 0:
             if count:
@@ -402,7 +406,12 @@ if __name__ == """__main__""":
     screen.blit(HEL16.render("Down          Crouch", 0, (255, 255, 255)), (300, 264))
     screen.blit(HEL16.render("Q                 Restart Level", 0, (255, 255, 255)), (300, 298))
     screen.blit(HEL16.render("Escape       Quit", 0, (255, 255, 255)), (300, 330))
-        
+    
+    def miltotime(mil):
+        mins = str(mil // 60000)
+        secs = "0" + str(mil // 1000 % 60)[-2:]
+
+
     while flag:
         pygame.display.update()
         for e in pygame.event.get():
@@ -434,9 +443,11 @@ if __name__ == """__main__""":
         g = reset()
         count = 0
         flag = True
+        IGT = 0
+        clock.tick()
         while flag:
             count += 1
-            clock.tick(30)
+            IGT += clock.tick(30)
             evaluate_input(count)
             adjust_scroll()
             move_actors(levels[level], count)
@@ -451,6 +462,7 @@ if __name__ == """__main__""":
             clock.tick(30)
             fill_back(levels[level])
             screen.blit(endframe, (0, 0))
+            screen.blit(HEL32.render(str(IGT // 60000) +":"+ ("0" + str(IGT // 1000 % 60))[-2:], 0, (0, 0, 0)),(0, 0))
             pygame.display.update()
             for e in pygame.event.get():
                 if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
