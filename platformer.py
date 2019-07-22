@@ -447,7 +447,7 @@ if __name__ == """__main__""":
         while flag:
             g['count'] += 1
             IGT += clock.tick(30)
-            evaluate_input(count)
+            evaluate_input(g['count'])
             adjust_scroll()
             move_actors(levels[level], g['count'])
             move_player(levels[level])
