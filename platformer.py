@@ -461,7 +461,7 @@ if __name__ == """__main__""":
             clock.tick(30)
             fill_back(levels[level])
             screen.blit(endframe, (0, 0))
-            screen.blit(HEL32.render(str(IGT // 60000) +":"+ ("0" + str(IGT // 1000 % 60))[-2:], 0, (0, 0, 0)),(0, 0))
+            screen.blit(HEL32.render(str(IGT // 60000) +":"+ ("0" + str(IGT // 1000 % 60))[-2:], 0, (0, 0, 0)),(180, 160))
             pygame.display.update()
             for e in pygame.event.get():
                 if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
