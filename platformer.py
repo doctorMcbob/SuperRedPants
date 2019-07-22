@@ -56,7 +56,7 @@ def reset():
     return  {
         'x': spawn[0]*32, 'y': spawn[1]*32, 'x_vel': 0, 'y_vel': 0, 'jumps': 0,
         'P': 1, 'scroller': [0,0], 'direction': 1,
-        'face': 0, 'body': 0, 'crouch': 0,
+        'face': 0, 'body': 0, 'crouch': 0, "count": 0,
     }
 g = reset()
 # --- sprites ---
@@ -441,16 +441,15 @@ if __name__ == """__main__""":
                     else: check.append(e.key)
         level_title(levels[level])
         g = reset()
-        count = 0
         flag = True
         IGT = 0
         clock.tick()
         while flag:
-            count += 1
+            g['count'] += 1
             IGT += clock.tick(30)
             evaluate_input(count)
             adjust_scroll()
-            move_actors(levels[level], count)
+            move_actors(levels[level], g['count'])
             move_player(levels[level])
             fill_back(levels[level])
             draw_level(levels[level])
