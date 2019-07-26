@@ -1,5 +1,7 @@
 #platformer.py
 """
+Personal Best time 8:35
+
 checklist:
 
 Stage 1 :) !!
@@ -46,6 +48,11 @@ challange = 0
 def reset():
     global levels, challange
     levels = []
+    if "-d" in sys.argv:
+        try:
+            with open('test', 'r') as file:
+                levels.append(init_level(eval(file.read())))
+        except IOError: pass
     with open('levels', 'r') as file:
         lvls = eval(file.read())
     for lvl in lvls: levels.append(init_level(lvl))

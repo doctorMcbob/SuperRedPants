@@ -1,8 +1,16 @@
 #leveleditor.py
+"""
+development process
+    save workon levels as test, 
+    run platformer with -d debug flag to put test as level1
+
+    tab: load file
+    enter: save file
+"""
 import sys
 import pygame
 from pygame.locals import *
-from platformer import load_spritesheet, sheetdata, wallpaperdata
+from platformer import *
 
 pygame.init()
 SCROLLER = [0, 0]
@@ -28,6 +36,7 @@ level = {
     "diamond": None,
     "background": None
 }
+
 colormap = {
     K_1: 'pink',
     K_2: 'red',
@@ -92,11 +101,20 @@ while True:
     for e in pygame.event.get():
         if e.type == QUIT: quit()
         if e.type == KEYDOWN:
+            if e.key == K_ESCAPE: quit()
             if pygame.key.get_mods() & KMOD_LSHIFT:
-                if e.key == K_LEFT: SCROLLER[0] -= 1
-                if e.key == K_RIGHT: SCROLLER[0] += 1
-                if e.key == K_UP: SCROLLER[1] -= 1
-                if e.key == K_DOWN: SCROLLER[1] += 1
+                if e.key == K_LEFT:
+                    SCROLLER[0] -= 1
+                    if CORNER: CORNER = CORNER[0]+1, CORNER[1]
+                if e.key == K_RIGHT:
+                    SCROLLER[0] += 1
+                    if CORNER: CORNER = CORNER[0]-1, CORNER[1]
+                if e.key == K_UP: 
+                    SCROLLER[1] -= 1
+                    if CORNER: CORNER = CORNER[0], CORNER[1]+1
+                if e.key == K_DOWN:
+                    SCROLLER[1] += 1
+                    if CORNER: CORNER = CORNER[0], CORNER[1]-1
             else:
                 if e.key == K_LEFT: CURSOR[0] -= 1
                 if e.key == K_RIGHT: CURSOR[0] += 1
@@ -111,7 +129,7 @@ while True:
             if e.key == K_d: level['diamond'] = (CURSOR[0] + SCROLLER[0], CURSOR[1] + SCROLLER[1])
             if e.key == K_SPACE: level['spawn'] = (CURSOR[0] + SCROLLER[0], CURSOR[1] + SCROLLER[1])
 
-            if e.key == K_DELETE:
+            if e.key == K_BACKSPACE:
                 c = (CURSOR[0] + SCROLLER[0], CURSOR[1] + SCROLLER[1])
                 box = pygame.rect.Rect((c[0] * 32, c[1] * 32), (32, 32))
                 checklist = [pygame.rect.Rect(pos, (dim[0]*32, dim[1]*32)) for pos, dim, col in level['platforms']]
@@ -136,7 +154,7 @@ while True:
                 else: filename = input("Save as: ")
                 with open(filename, "w+") as f:
                     f.write(repr(level))
-            if e.key == K_BACKSPACE:
+            if e.key == K_TAB:
                 filename = input("Load file (blank to cancel): ")
                 if filename:
                     try:
