@@ -129,6 +129,15 @@ while True:
                 eventlist = eventlist[:frame]
                 keyslist = keyslist[:frame]
                 statelist.append((deepcopy(plt.g), deepcopy(plt.levels[plt.level])))
+                eventlist.append(events)
+                keyslist.append(keymaster.copy())
+
+            if e.key == K_d: make_event() # keydown event
+            if e.key in keymaster:  # key toggle
+                keymaster[e.key] = False if keymaster[e.key] else True
+            if e.key == K_p: play_tas() # play
+
+            if e.key == K_RETURN:
                 filename = input("Save as (blank for TAS): ")
                 if not filename: filename = "TAS"
                 with open(filename, "wb+") as file:
