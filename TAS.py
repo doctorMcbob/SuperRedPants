@@ -80,9 +80,7 @@ def select_frame(frame):
         plt.g, plt.levels[plt.level] = statelist[frame]
         events = eventlist[frame]
         keymaster = keyslist[frame]
-    else:
-        print(frame, len(statelist))
-        new_frame()
+    else: new_frame()
     plt.adjust_scroll()
     plt.fill_back(plt.levels[plt.level])
     plt.draw_level(plt.levels[plt.level])
