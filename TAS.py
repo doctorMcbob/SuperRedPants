@@ -48,6 +48,10 @@ def play_tas():
     plt.IGT = 0
     plt.clock.tick()
     while plt.flag:
+        frame += 1
+        if frame >= len(eventlist):
+            frame -= 1
+            break
         plt.g['count'] += 1
         plt.IGT += plt.clock.tick(30)
         plt.evaluate_input(plt.g['count'], eventfunc=eventfunc, keysfunc=keysfunc)
@@ -57,11 +61,7 @@ def play_tas():
         plt.fill_back(plt.levels[plt.level])
         plt.draw_level(plt.levels[plt.level])
         pygame.display.update()
-        frame += 1
-        if frame >= len(eventlist):
-            frame -= 1
-            break
-
+        
 def new_frame():
     global events
     plt.g['count'] += 1
@@ -69,23 +69,20 @@ def new_frame():
     plt.evaluate_input(plt.g['count'], bouncer(events.copy()), keysfunc=bouncer(keymaster.copy()))
     plt.move_actors(plt.levels[plt.level], plt.g['count'])
     plt.move_player(plt.levels[plt.level])
-    if frame >= len(statelist):
-        statelist.append((plt.g.copy(), deepcopy(plt.levels[plt.level])))
-        eventlist.append(events)
-        keyslist.append(keymaster.copy())
-    else:
-        statelist[frame] = plt.g.copy()
-        eventlist[frame] = events
-        keyslist[frame] = keymaster.copy()
+    statelist.append((plt.g.copy(), deepcopy(plt.levels[plt.level])))
+    eventlist.append(events)
+    keyslist.append(keymaster.copy())
     events = []
 
 def select_frame(frame):
     global events, keymaster
-    if frame >= len(statelist): new_frame()
-    else: 
+    if not frame >= len(statelist):
         plt.g, plt.levels[plt.level] = statelist[frame]
         events = eventlist[frame]
         keymaster = keyslist[frame]
+    else:
+        print(frame, len(statelist))
+        new_frame()
     plt.adjust_scroll()
     plt.fill_back(plt.levels[plt.level])
     plt.draw_level(plt.levels[plt.level])
@@ -108,6 +105,10 @@ def make_event(type=KEYDOWN):
                 events.append(Event(e.key, type=type))
                 return
 
+def foo(statelist):
+    for i, state in enumerate(statelist):
+        print("Frame", i, "Count", state[0]['count'])
+
 select_frame(frame)
 while True:
     pygame.display.update()
@@ -115,20 +116,26 @@ while True:
         if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
 
         if e.type == KEYDOWN:
-            if e.key == K_n: frame += 1
-            if e.key == K_b: frame -= 1
+
+            if e.key == K_n: frame += 1 # next
+            if e.key == K_b: frame -= 1 # back
             if e.key in [K_n, K_b]: select_frame(frame)
 
-            if e.key == K_w and frame < len(statelist)-1:
+            if e.key == K_w: # what?
+                print(plt.g)
+                foo(statelist)
+            if e.key == K_c: # clear
                 statelist = statelist[:frame]
                 eventlist = eventlist[:frame]
                 keyslist = keyslist[:frame]
-                select_frame(frame)
-                frame += 1
-            if e.key == K_d: make_event()
-            if e.key in keymaster: 
+                statelist.append((deepcopy(plt.g), deepcopy(plt.levels[plt.level])))
+                eventlist.append(events)
+                keyslist.append(keymaster.copy())
+
+            if e.key == K_d: make_event() # keydown event
+            if e.key in keymaster:  # key toggle
                 keymaster[e.key] = False if keymaster[e.key] else True
-            if e.key == K_p: play_tas()
+            if e.key == K_p: play_tas() # play
 
             if e.key == K_RETURN:
                 filename = input("Save as (blank for TAS): ")
@@ -137,7 +144,7 @@ while True:
                     pickle.dump((eventlist, keyslist, statelist), file)
 
             if e.key == K_TAB:
-                filename = input("Load fromo (blank for TAS): ")
+                filename = input("Load from (blank for TAS): ")
                 if not filename: filename = "TAS"
                 with open(filename, "rb") as file:
                     eventlist, keyslist, statelist = pickle.load(file)

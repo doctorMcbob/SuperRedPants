@@ -27,6 +27,10 @@ pygame.init()
 HEL32 = pygame.font.SysFont("Helvetica", 32)
 HEL16 = pygame.font.SysFont("Helvetica", 16)
 
+level = 0
+challange = 0
+IGT = 0
+
 def init_level(level):
     """returns initialized version of the level"""
     grapes = []
@@ -43,8 +47,6 @@ def init_level(level):
     level['barrels'] = barrels
     return level
 
-level = 0
-challange = 0
 def reset():
     global levels, challange
     levels = []
@@ -217,10 +219,10 @@ def move_player(level):
     g['x'] += g['x_vel']
     g['y'] += g['y_vel']
 
-def evaluate_input(counter):
+def evaluate_input(counter, eventfunc=pygame.event.get, keysfunc=pygame.key.get_pressed):
     """Controlls happen here"""
     g['face'] = 0
-    for e in pygame.event.get():
+    for e in eventfunc():
         if e.type == QUIT: quit()
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE: quit()
@@ -232,7 +234,7 @@ def evaluate_input(counter):
             if e.key == K_n and '-d' in sys.argv: win_lvl()
             if e.key == K_d and '-d' in sys.argv: pdb.set_trace()
 
-    keys = pygame.key.get_pressed()
+    keys = keysfunc()
     if not keys[K_SPACE] and -10 < g['y_vel'] < 0:
         g['y_vel'] += 2
     if keys[K_LEFT] and not keys[K_RIGHT] and not g['crouch']:
@@ -391,86 +393,84 @@ def move_actors(level, c):
             i_ = hitbox.collidelist(ayyboxes)
             if i_ != -1: level['ayys'][i_][2] = 1
             level['barrels'][i][0] = (level['barrels'][i][0][0] + (4 * (1/32)) * direction, level['barrels'][i][0][1])
+clock = pygame.time.Clock()
+if '-f' in sys.argv: screen = pygame.display.set_mode((640, 480), FULLSCREEN)
+else: screen = pygame.display.set_mode((640, 480))
+pygame.display.set_caption("Super Red Pants Turbo")
+sprites = load_spritesheet("platformertileset.png", sheetdata, colorkey=(1, 255, 1))
+pygame.draw.rect(sprites['alien2'], (1, 255, 1), pygame.rect.Rect((0, 0), (32, 16)))
+wallpaper = load_spritesheet("backgrounds.png", wallpaperdata)
+titlecard = pygame.image.load('titlecard.png').convert()
+endframe = pygame.image.load('endframe.png').convert()
+titlecard.set_colorkey((1, 255, 1))
+endframe.set_colorkey((1, 255, 1))
+flag = True
+screen.fill((0, 0, 0))
+screen.blit(HEL32.render("The philosophy of Red Pants", 0, (255, 255, 255)), (64, 64))
+screen.blit(HEL32.render(""" "Don't worry about it" """, 0, (255, 255, 255)), (128, 130))
+screen.blit(HEL16.render("Space         Jump", 0, (255, 255, 255)), (300, 200))
+screen.blit(HEL16.render("Left/Right    Run", 0, (255, 255, 255)), (300, 232))
+screen.blit(HEL16.render("Down          Crouch", 0, (255, 255, 255)), (300, 264))
+screen.blit(HEL16.render("Q                 Restart Level", 0, (255, 255, 255)), (300, 298))
+screen.blit(HEL16.render("Escape       Quit", 0, (255, 255, 255)), (300, 330))
 
-if __name__ == """__main__""":
-    clock = pygame.time.Clock()
-    if '-f' in sys.argv: screen = pygame.display.set_mode((640, 480), FULLSCREEN)
-    else: screen = pygame.display.set_mode((640, 480))
-    pygame.display.set_caption("Super Red Pants Turbo")
-    sprites = load_spritesheet("platformertileset.png", sheetdata, colorkey=(1, 255, 1))
-    pygame.draw.rect(sprites['alien2'], (1, 255, 1), pygame.rect.Rect((0, 0), (32, 16)))
-    wallpaper = load_spritesheet("backgrounds.png", wallpaperdata)
-    titlecard = pygame.image.load('titlecard.png').convert()
-    endframe = pygame.image.load('endframe.png').convert()
-    titlecard.set_colorkey((1, 255, 1))
-    endframe.set_colorkey((1, 255, 1))
+def miltotime(mil):
+    mins = str(mil // 60000)
+    secs = "0" + str(mil // 1000 % 60)[-2:]
+
+while flag:
+    pygame.display.update()
+    for e in pygame.event.get():
+        if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
+        if e.type == KEYUP: flag = False
+
+while __name__ == """__main__""":
     flag = True
-    screen.fill((0, 0, 0))
-    screen.blit(HEL32.render("The philosophy of Red Pants", 0, (255, 255, 255)), (64, 64))
-    screen.blit(HEL32.render(""" "Don't worry about it" """, 0, (255, 255, 255)), (128, 130))
-    screen.blit(HEL16.render("Space         Jump", 0, (255, 255, 255)), (300, 200))
-    screen.blit(HEL16.render("Left/Right    Run", 0, (255, 255, 255)), (300, 232))
-    screen.blit(HEL16.render("Down          Crouch", 0, (255, 255, 255)), (300, 264))
-    screen.blit(HEL16.render("Q                 Restart Level", 0, (255, 255, 255)), (300, 298))
-    screen.blit(HEL16.render("Escape       Quit", 0, (255, 255, 255)), (300, 330))
-    
-    def miltotime(mil):
-        mins = str(mil // 60000)
-        secs = "0" + str(mil // 1000 % 60)[-2:]
-
-
+    g['y'] = -64
+    level = 0
+    check = []
     while flag:
+        g['scroller'][0] -= 1
+        clock.tick(30)
+        fill_back(levels[level])
+        draw_level(levels[level])
+        move_actors(levels[level], 1)
+        screen.blit(titlecard, ((screen.get_width()/2) - (titlecard.get_width()/2), 16))
         pygame.display.update()
         for e in pygame.event.get():
             if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
-            if e.type == KEYUP: flag = False
-    while True:
-        flag = True
-        g['y'] = -64
-        level = 0
-        check = []
-        while flag:
-            g['scroller'][0] -= 1
-            clock.tick(30)
-            fill_back(levels[level])
-            draw_level(levels[level])
-            move_actors(levels[level], 1)
-            screen.blit(titlecard, ((screen.get_width()/2) - (titlecard.get_width()/2), 16))
-            pygame.display.update()
-            for e in pygame.event.get():
-                if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
-                elif e.type == KEYDOWN:
-                    if e.key == K_SPACE:
-                        flag = False
-                        if check[-8:] == [K_UP, K_UP, K_DOWN, K_DOWN, K_LEFT, K_RIGHT, K_LEFT, K_RIGHT]:
-                            challange = 1
-                            g = reset()
-                    else: check.append(e.key)
-        level_title(levels[level])
-        g = reset()
-        flag = True
-        IGT = 0
-        clock.tick()
-        while flag:
-            g['count'] += 1
-            IGT += clock.tick(30)
-            evaluate_input(g['count'])
-            adjust_scroll()
-            move_actors(levels[level], g['count'])
-            move_player(levels[level])
-            fill_back(levels[level])
-            draw_level(levels[level])
-            pygame.display.update()
-        flag = True
-        count = 0
-        while flag:
-            count += 1
-            clock.tick(30)
-            fill_back(levels[level])
-            screen.blit(endframe, (0, 0))
-            screen.blit(HEL32.render(str(IGT // 60000) +":"+ ("0" + str(IGT // 1000 % 60))[-2:], 0, (0, 0, 0)),(180, 160))
-            pygame.display.update()
-            for e in pygame.event.get():
-                if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
-                elif e.type == KEYDOWN and e.key == K_SPACE and count >= 30: flag = False
-        g = reset()
+            elif e.type == KEYDOWN:
+                if e.key == K_SPACE:
+                    flag = False
+                    if check[-8:] == [K_UP, K_UP, K_DOWN, K_DOWN, K_LEFT, K_RIGHT, K_LEFT, K_RIGHT]:
+                        challange = 1
+                        g = reset()
+                else: check.append(e.key)
+    level_title(levels[level])
+    g = reset()
+    flag = True
+    IGT = 0
+    clock.tick()
+    while flag:
+        g['count'] += 1
+        IGT += clock.tick(30)
+        evaluate_input(g['count'])
+        adjust_scroll()
+        move_actors(levels[level], g['count'])
+        move_player(levels[level])
+        fill_back(levels[level])
+        draw_level(levels[level])
+        pygame.display.update()
+    flag = True
+    count = 0
+    while flag:
+        count += 1
+        clock.tick(30)
+        fill_back(levels[level])
+        screen.blit(endframe, (0, 0))
+        screen.blit(HEL32.render(str(IGT // 60000) +":"+ ("0" + str(IGT // 1000 % 60))[-2:], 0, (0, 0, 0)),(180, 160))
+        pygame.display.update()
+        for e in pygame.event.get():
+            if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE: quit()
+            elif e.type == KEYDOWN and e.key == K_SPACE and count >= 30: flag = False
+    g = reset()
