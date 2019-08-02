@@ -6,6 +6,7 @@ import pygame
 from pygame.locals import *
 import platformer as plt
 from copy import deepcopy
+import sys
 import pickle
 import os
 
@@ -153,6 +154,13 @@ def find_desync(statelist):
             else: print("desync frame ", frame)
         c = state[0]['count']
 
+def load(filename):
+    global eventlist, keyslist, statelist
+    with open(filename, "rb") as file:
+        eventlist, keyslist, statelist = pickle.load(file)
+        frame = 0
+        select_frame(frame)
+
 plt.level = 0
 frame = 0
 plt.level_title(plt.levels[plt.level])
@@ -160,6 +168,14 @@ plt.g = plt.reset()
 statelist.append((deepcopy(plt.g), deepcopy(plt.levels[plt.level])))
 eventlist.append(events)
 keyslist.append(keymaster.copy())
+try:
+    with open(sys.argv[-1], "rb") as file:
+        eventlist, keyslist, statelist = pickle.load(file)
+        frame = 0
+    play_tas()
+except:
+    pass
+
 while True:
     pygame.display.update()
     for e in pygame.event.get():
@@ -209,10 +225,6 @@ while True:
             if e.key == K_TAB:
                 filename = input("Load from (blank for cancel): ")
                 if filename:
-                    with open(filename, "rb") as file:
-                        eventlist, keyslist, statelist = pickle.load(file)
-                        frame = 0
-                    select_frame(frame)
-
+                    load(filename)
     screen.blit(get_tastools(), (0, 0))
     pygame.display.update()
